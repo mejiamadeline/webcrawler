@@ -7,6 +7,8 @@ from konlpy.tag import Okt
 from collections import Counter
 from string import punctuation
 from urllib.parse import urljoin
+import re
+from urllib.request import urlopen
 
 #url = "https://www.cau.ac.kr"
 #url = "https://www.ipn.mx/"
@@ -25,6 +27,27 @@ for append_url in soup.find_all('a', href= True):
     append_url = urljoin(url, append_url)
     outlinks.append(append_url)                      # I was able to extract the links inside outlinks[], but can't figure out how to crawl each one of them.
 
+def getDisallowed():
+    robotsDUrl = "https://www.devry.edu/robots.txt"
+    html2 = urlopen(robotsDUrl).read()
+    soup2 = BeautifulSoup(html2, 'html.parser')
+
+    for script in soup(["script", "style"]):
+        script.decompse()
+    
+    robot = (soup2.get_text())
+    robots = re.split( ':|\n', robot)
+    dontNeed = ['Disallow', ' *','# FOR ALL OTHER USER AGENTS','User-agent', '',
+    '# BLOCKED AGENTS', ' Zing-BottaBot*', ' /', '# SITEMAP LOCATION', 'Sitemap', 
+    ' https', '//www.devry.edu/sitemap.xml']
+    for word in list(robots):
+        if word in dontNeed:
+            robots.remove(word)
+
+    print(robots)
+    #print(type(rs))
+    #print(type(soup2))
+    #print(soup2.prettify)
 
 # I made an if else statement that checks the language of the html.
 # If it is not Korean, then count top 100 most frequent words without using the konply library
@@ -54,6 +77,11 @@ os.makedirs(os.path.dirname(filename_words), exist_ok=True)     # Create a folde
 with open(filename_words, 'w', encoding = "utf-8-sig") as file:
     for noun, number in words_list:
         file.write( "{}, {}\n".format(noun, number) )
+
+def main():
+    getDisallowed()
+if __name__ == "__main__":
+    main()
 
 
 
