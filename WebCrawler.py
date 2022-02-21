@@ -1,0 +1,62 @@
+import os
+import requests
+import nltk
+from langdetect import detect
+from bs4 import BeautifulSoup
+from konlpy.tag import Okt
+from collections import Counter
+from string import punctuation
+from urllib.parse import urljoin
+
+#url = "https://www.cau.ac.kr"
+#url = "https://www.ipn.mx/"
+url = "https://www.devry.edu/"
+
+response = requests.get(url, verify = False)
+html = response.text
+soup = BeautifulSoup(html, 'html.parser')   # Request html from the url and use Beautifulsoup to parse
+
+for script in soup(["script", "style"]):    # Get rid of javascript and css from the html
+    script.decompose()
+
+outlinks = []                          
+for append_url in soup.find_all('a', href= True):
+    append_url = append_url.get('href')
+    append_url = urljoin(url, append_url)
+    outlinks.append(append_url)                      # I was able to extract the links inside outlinks[], but can't figure out how to crawl each one of them.
+
+
+# I made an if else statement that checks the language of the html.
+# If it is not Korean, then count top 100 most frequent words without using the konply library
+# If it is in Korean, then use the konlpy library and count top 100 most frequent words.
+text = soup.get_text()
+if detect(text) != "ko":                            
+    text = (''.join(s.findAll(text=True))for s in soup.findAll('p'))
+    count_words = Counter((a.rstrip(punctuation).lower() for b in text for a in b.split()))
+    words_list = (count_words.most_common(100))
+else:
+    soup_string = str(soup)                 # Convert the html into string
+    okt = Okt()                             
+    korean_noun = okt.nouns(soup_string)    # From the converted string, extract only Korean nouns
+    words_only = str(korean_noun)           # Convert the nouns into string
+    print("The URL is in the following language: ", detect(words_only))
+    count_words = Counter(korean_noun)      
+    words_list = count_words.most_common(100)   # Count the 100 most frequent words
+
+filename_words = "C:/users/jjung/repository/words.csv"
+filename_html = "C:/users/jjung/repository/html_output.txt"
+
+os.makedirs(os.path.dirname(filename_html), exist_ok=True)
+with open(filename_html, "w") as file:
+    file.write(str(soup))
+
+os.makedirs(os.path.dirname(filename_words), exist_ok=True)     # Create a folder named repository and save files
+with open(filename_words, 'w', encoding = "utf-8-sig") as file:
+    for noun, number in words_list:
+        file.write( "{}, {}\n".format(noun, number) )
+
+
+
+
+
+
