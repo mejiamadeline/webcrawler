@@ -10,10 +10,18 @@ from urllib.parse import urljoin
 import re
 from urllib.request import urlopen
 
-#url = "https://www.cau.ac.kr"
-#url = "https://www.ipn.mx/"
-url = "https://www.devry.edu/"
+#url = ""
+#url = ""
+#url = ""
+options = ["https://www.cau.ac.kr","https://www.ipn.mx/","https://www.devry.edu/"]
+print("Which url would you like to crawl")
+count=0
 
+for each in options: 
+    print(count, " ",each)
+    count = count+1
+num = int(input())
+url = options[num]
 response = requests.get(url, verify = False)
 html = response.text
 soup = BeautifulSoup(html, 'html.parser')   # Request html from the url and use Beautifulsoup to parse
@@ -28,7 +36,8 @@ for append_url in soup.find_all('a', href= True):
     outlinks.append(append_url)                      # I was able to extract the links inside outlinks[], but can't figure out how to crawl each one of them.
 
 def getDisallowed():
-    robotsDUrl = "https://www.devry.edu/robots.txt"
+    #robotsDUrl = "https://www.devry.edu/robots.txt"
+    robotsDUrl = url + "/robots.txt"
     html2 = urlopen(robotsDUrl).read()
     soup2 = BeautifulSoup(html2, 'html.parser')
 
