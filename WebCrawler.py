@@ -21,6 +21,7 @@ for each in options:
     print(count, " ",each)
     count = count+1
 num = int(input())
+file_num = num+1
 url = options[num]
 response = requests.get(url, verify = False)
 html = response.text
@@ -75,8 +76,8 @@ else:
     count_words = Counter(korean_noun)      
     words_list = count_words.most_common(100)   # Count the 100 most frequent words
 
-filename_words = "C:/users/jjung/repository/words.csv"
-filename_html = "C:/users/jjung/repository/html_output.html"
+filename_words = f"C:/users/jjung/repository/words{file_num}.csv"
+filename_html = f"C:/users/jjung/repository/html_output{file_num}.html"
 
 os.makedirs(os.path.dirname(filename_html), exist_ok=True)
 with open(filename_html, "w") as file:
