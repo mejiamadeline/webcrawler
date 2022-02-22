@@ -76,7 +76,7 @@ else:
     words_list = count_words.most_common(100)   # Count the 100 most frequent words
 
 filename_words = "C:/users/jjung/repository/words.csv"
-filename_html = "C:/users/jjung/repository/html_output.txt"
+filename_html = "C:/users/jjung/repository/html_output.html"
 
 os.makedirs(os.path.dirname(filename_html), exist_ok=True)
 with open(filename_html, "w") as file:
@@ -86,6 +86,17 @@ os.makedirs(os.path.dirname(filename_words), exist_ok=True)     # Create a folde
 with open(filename_words, 'w', encoding = "utf-8-sig") as file:
     for noun, number in words_list:
         file.write( "{}, {}\n".format(noun, number) )
+
+# This for loop iterates through all the links in the outlinks list and requests the html, but currently missing a feature to
+# save the visited link's html to a new file, e.g. html_output(2).html for the second visited link, html_outout(3).html for the third link, ...
+"""
+for item in outlinks:
+    outlink_response = requests.get(item, verify = False)
+    outlink_html = outlink_response.text
+    outlink_soup = BeautifulSoup(outlink_html, 'html.parser')
+    for script in outlink_soup(['script', 'style']):
+        script.decompose()
+"""
 
 def main():
     getDisallowed()
