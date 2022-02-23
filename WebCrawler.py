@@ -1,3 +1,4 @@
+
 import os
 import requests
 import nltk
@@ -26,7 +27,7 @@ url = options[num]
 file_path =input("Please enter the file path that you would like to use: ")
 response = requests.get(url, verify = False)
 html = response.text
-soup = BeautifulSoup(html, 'html.parser')   # Request html from the url and use Beautifulsoup to parse
+soup = BeautifulSoup(html, 'lxml')   # Request html from the url and use lxml is a more robust parser
 
 for script in soup(["script", "style"]):    # Get rid of javascript and css from the html
     script.decompose()
@@ -72,10 +73,10 @@ else:
     soup_string = str(soup)                 # Convert the html into string
     okt = Okt()                             
     korean_noun = okt.nouns(soup_string)    # From the converted string, extract only Korean nouns
-    words_only = str(korean_noun)           # Convert the nouns into string
-    print("The URL is in the following language: ", detect(words_only))
     count_words = Counter(korean_noun)      
     words_list = count_words.most_common(100)   # Count the 100 most frequent words
+    
+print("The URL is in the following language: ", detect(soup.text))  #Brought this outside because it was only being used in the else statement  
 
 filename_words = f"{file_path}/repository/words{file_num}.csv"
 filename_html = f"{file_path}/repository/html_output{file_num}.html"
@@ -104,8 +105,6 @@ def main():
     getDisallowed()
 if __name__ == "__main__":
     main()
-
-
 
 
 
