@@ -160,9 +160,9 @@ def save_htmls(file_path, file_num, thisSoup):
         filename_outhtml = f"{file_path}/repository/html_output{file_num}({out}).html"
         os.makedirs(os.path.dirname(filename_outhtml), exist_ok=True)
         with open(filename_outhtml, "w") as file:
-            file.write(str(thisSoup))
+            file.write(str(soup))
         out += 1
-        print(thisSoup)
+        print(soup)
         
   
 
