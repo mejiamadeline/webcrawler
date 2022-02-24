@@ -17,7 +17,7 @@ import string
 
 def main():
     #select link
-    options = ["https://www.cau.ac.kr","https://www.ipn.mx/","https://www.devry.edu/"]
+    options = ["https://www.cau.ac.kr","https://es.wikipedia.org/","https://www.devry.edu/"]
     print("Which url would you like to crawl")
     count=0
 
@@ -34,7 +34,6 @@ def main():
     crawled = crawledOut
 
     counter = 0
-    outlinksN = 500
     urlList = []
     outlinkCount = []
     allSoup = []
@@ -44,7 +43,7 @@ def main():
     
 
     for links in outlinks:
-        if counter > 5:
+        if counter > 100:
             break
         thisCounter, url, thisSoup, validOutlinks, soupText = goCrawl(mainURL, links, crawled)
 
@@ -63,8 +62,8 @@ def main():
         soupString = (''.join([x for x in soupString if x in string.ascii_letters + '\'- ']))
         countTrue = Counter(soupString.lower().split())
         crawledWords = (countTrue.most_common(100))
-        
-        print(crawledWords)
+        print("The URL is in the following language: ", detect(soupString)) 
+        #print(crawledWords)
     else:
         okt = Okt()                             
         korean_noun = okt.nouns(soupString)    # From the converted string, extract only Korean nouns
@@ -73,6 +72,7 @@ def main():
         crawledWords = countTrue.most_common(100)   # Count the 100 most frequent words
 
     print("The URL is in the following language: ", detect(soupString)) 
+    #print(outlinks)
 
     report.append(urlList)
     report.append(outlinkCount)
@@ -86,7 +86,7 @@ def crawl_domain(mainURL,crawled):
     
     #response = requests.get(mainURL, verify = False)
     session = requests.Session()
-    retry = Retry(connect=3, backoff_factor=2)
+    retry = Retry(connect=3, backoff_factor=0.1)
     adapter = HTTPAdapter(max_retries=retry)
     session.mount('http://', adapter)
     session.mount('https://', adapter)
@@ -108,6 +108,8 @@ def crawl_domain(mainURL,crawled):
         else:
             if "javascript:void(0)" == append_url:
                 pass
+            elif "javascript:void(0);" == append_url:
+                pass
             else:
                 outlinks.append(append_url)  
             outlinksCounter += 1
@@ -127,7 +129,7 @@ def getDisallowed(mainURL, pageVisting):
 def goCrawl(mainURL, url, crawled):
     #page = requests.get(url, verify = False)
     session = requests.Session()
-    retry = Retry(connect=3, backoff_factor=2)
+    retry = Retry(connect=3, backoff_factor=0.1)
     adapter = HTTPAdapter(max_retries=retry)
     session.mount('http://', adapter)
     session.mount('https://', adapter)
