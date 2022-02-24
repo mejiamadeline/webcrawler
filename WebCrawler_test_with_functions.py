@@ -42,7 +42,6 @@ def main():
     soupString = ''
 
     words_list = check_language(soup)
-    save_files(file_path,file_num,words_list,soup,report)
 
     for links in outlinks:
         if counter > 100:
@@ -65,8 +64,8 @@ def main():
     crawledWords = (countTrue.most_common(100))
     print(crawledWords)
 
-    report.append(urlList)
-    report.append(outlinkCount)
+
+    save_files(file_path,file_num,words_list,soup,urlList, outlinkCount)
     save_htmls(file_path, file_num, allSoup)
 
 
@@ -179,7 +178,7 @@ def check_language(soup):
     print("The URL is in the following language: ", detect(soup.text)) 
     return words_list
 
-def save_files(file_path, file_num, words_list, soup, report):
+def save_files(file_path, file_num, words_list, soup, urlList, outlinkCount):
     filename_words = f"{file_path}/repository/words{file_num}.csv"
     filename_html = f"{file_path}/repository/html_output{file_num}.html"
     filename_report = f"{file_path}/repository/report{file_num}.csv"
@@ -194,9 +193,9 @@ def save_files(file_path, file_num, words_list, soup, report):
             file.write("{}, {}\n".format(noun, number))
     
     os.makedirs(os.path.dirname(filename_report),exist_ok=True)
-    with open(filename_report, "w") as file2:
-        for url, number in report:
-            file2.write("{}, {}\n".format(url, number))
+    with open(filename_report, "w", encoding = "utf-8") as file:
+        for i in range(len(urlList)):
+            file.write("{}, {}\n".format(urlList[i], outlinkCount[i]))
 
 def save_htmls(file_path, file_num, thisSoup):
     out =1 
