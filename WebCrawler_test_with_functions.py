@@ -200,15 +200,5 @@ def save_htmls(file_path, file_num, thisSoup):
         out += 1
         #print(soup)
         
-# This for loop iterates through all the links in the outlinks list and requests the html, but currently missing a feature to
-# save the visited link's html to a new file, e.g. html_output(2).html for the second visited link, html_outout(3).html for the third link, ...
-
-    '''for item in outlinks:
-    outlink_response = requests.get(item, verify = False)
-    outlink_html = outlink_response.text
-    outlink_soup = BeautifulSoup(outlink_html, 'html.parser')
-    for script in outlink_soup(['script', 'style']):
-        script.decompose()'''
-
 if __name__ == "__main__":
     main()
