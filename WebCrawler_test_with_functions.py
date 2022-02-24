@@ -13,6 +13,7 @@ from urllib.parse import urljoin
 import re
 from urllib.request import urlopen
 import urllib.robotparser 
+import string
 
 def main():
     #select link
@@ -37,6 +38,8 @@ def main():
     urlList = []
     outlinkCount = []
     allSoup = []
+    masterSoup = []
+    soupString = ''
 
     words_list = check_language(soup)
     save_files(file_path,file_num,words_list,soup,report)
@@ -44,23 +47,37 @@ def main():
     for links in outlinks:
         if counter > 100:
             break
-        thisCounter, url, thisSoup, validOutlinks = goCrawl(mainURL, links, crawled)
+        thisCounter, url, thisSoup, validOutlinks, soupText = goCrawl(mainURL, links, crawled)
+
         allSoup.append(thisSoup)
+        masterSoup.append(soupText)
         
         crawled.append(links)
         urlList.append(url)
         outlinkCount.append(thisCounter)
         counter += 1
+
+    for soup in masterSoup:
+        soupString = soupString + soup
+
+    soupString = (''.join([x for x in soupString if x in string.ascii_letters + '\'- ']))
+    countTrue = Counter(soupString.lower().split())
+    crawledWords = (countTrue.most_common(100))
+    print(crawledWords)
+
     report.append(urlList)
     report.append(outlinkCount)
     save_htmls(file_path, file_num, allSoup)
+
+
+    
 
 
 def crawl_domain(mainURL,crawled):
     
     #response = requests.get(mainURL, verify = False)
     session = requests.Session()
-    retry = Retry(connect=3, backoff_factor=0.5)
+    retry = Retry(connect=3, backoff_factor=2)
     adapter = HTTPAdapter(max_retries=retry)
     session.mount('http://', adapter)
     session.mount('https://', adapter)
@@ -86,7 +103,7 @@ def crawl_domain(mainURL,crawled):
                 outlinks.append(append_url)  
             outlinksCounter += 1
     crawled.append(mainURL)
-    print(outlinks)
+    #print(outlinks)
 
     return soup, outlinks, crawled
 
@@ -101,7 +118,7 @@ def getDisallowed(mainURL, pageVisting):
 def goCrawl(mainURL, url, crawled):
     #page = requests.get(url, verify = False)
     session = requests.Session()
-    retry = Retry(connect=3, backoff_factor=0.5)
+    retry = Retry(connect=3, backoff_factor=2)
     adapter = HTTPAdapter(max_retries=retry)
     session.mount('http://', adapter)
     session.mount('https://', adapter)
@@ -109,6 +126,7 @@ def goCrawl(mainURL, url, crawled):
 
     thisHTML = page.text
     thisSoup = BeautifulSoup(thisHTML,'lxml')
+    soupText = thisSoup.get_text()
 
     for script in thisSoup(["script", "style"]):
         script.decompose()
@@ -138,7 +156,7 @@ def goCrawl(mainURL, url, crawled):
                 else:
                     pass
 
-    return thisCounter, url, thisSoup, validOutlinks
+    return thisCounter, url, thisSoup, validOutlinks, soupText
 
 # I made an if else statement that checks the language of the html.
 # If it is not Korean, then count top 100 most frequent words without using the konply library
