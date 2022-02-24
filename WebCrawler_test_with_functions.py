@@ -69,8 +69,11 @@ def crawl_domain(mainURL,crawled):
     for append_url in soup.find_all('a', href= True):
         append_url = append_url.get('href')
         append_url = urljoin(mainURL, append_url)
-        outlinks.append(append_url)  
-        outlinksCounter += 1
+        if append_url == mainURL:
+            pass
+        else:
+            outlinks.append(append_url)  
+            outlinksCounter += 1
     crawled.append(mainURL)
 
     return soup, outlinks, crawled
