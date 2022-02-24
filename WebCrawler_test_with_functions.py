@@ -41,7 +41,7 @@ def main():
     masterSoup = []
     soupString = ''
 
-    words_list = check_language(soup)
+    
 
     for links in outlinks:
         if counter > 100:
@@ -58,16 +58,26 @@ def main():
 
     for soup in masterSoup:
         soupString = soupString + soup
+    
+    if detect(soupString) != "ko": 
+        soupString = (''.join([x for x in soupString if x in string.ascii_letters + '\'- ']))
+        countTrue = Counter(soupString.lower().split())
+        crawledWords = (countTrue.most_common(100))
+        
+        print(crawledWords)
+    else:
+        okt = Okt()                             
+        korean_noun = okt.nouns(soupString)    # From the converted string, extract only Korean nouns
+        words_only = str(korean_noun)           # Convert the nouns into string
+        countTrue = Counter(korean_noun)      
+        crawledWords = countTrue.most_common(100)   # Count the 100 most frequent words
 
-    soupString = (''.join([x for x in soupString if x in string.ascii_letters + '\'- ']))
-    countTrue = Counter(soupString.lower().split())
-    crawledWords = (countTrue.most_common(100))
-    print(crawledWords)
+    print("The URL is in the following language: ", detect(soupString)) 
 
-
-    save_files(file_path,file_num,words_list,soup,urlList, outlinkCount)
+    report.append(urlList)
+    report.append(outlinkCount)
     save_htmls(file_path, file_num, allSoup)
-
+    save_files(file_path,file_num,crawledWords,soup,urlList, outlinkCount)
 
     
 
@@ -160,23 +170,6 @@ def goCrawl(mainURL, url, crawled):
 # I made an if else statement that checks the language of the html.
 # If it is not Korean, then count top 100 most frequent words without using the konply library
 # If it is in Korean, then use the konlpy library and count top 100 most frequent words.
-def check_language(soup):
-    
-    text = soup.get_text()
-    if detect(text) != "ko":                            
-        text = (''.join(s.findAll(text=True))for s in soup.findAll('p'))
-        count_words = Counter((a.rstrip(punctuation).lower() for b in text for a in b.split()))
-        words_list = (count_words.most_common(100))
-    else:
-        soup_string = str(soup)                 # Convert the html into string
-        okt = Okt()                             
-        korean_noun = okt.nouns(soup_string)    # From the converted string, extract only Korean nouns
-        words_only = str(korean_noun)           # Convert the nouns into string
-        count_words = Counter(korean_noun)      
-        words_list = count_words.most_common(100)   # Count the 100 most frequent words
-
-    print("The URL is in the following language: ", detect(soup.text)) 
-    return words_list
 
 def save_files(file_path, file_num, words_list, soup, urlList, outlinkCount):
     filename_words = f"{file_path}/repository/words{file_num}.csv"
