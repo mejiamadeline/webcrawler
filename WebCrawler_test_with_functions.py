@@ -42,7 +42,7 @@ def main():
     save_files(file_path,file_num,words_list,soup,report)
 
     for links in outlinks:
-        if counter > 5:
+        if counter > 100:
             break
         thisCounter, url, thisSoup, validOutlinks = goCrawl(mainURL, links, crawled)
         allSoup.append(thisSoup)
@@ -54,9 +54,7 @@ def main():
     report.append(urlList)
     report.append(outlinkCount)
     save_htmls(file_path, file_num, allSoup)
-    print(words_list)
-    print(crawled)
-    print(report)
+
 
 def crawl_domain(mainURL,crawled):
     
@@ -82,7 +80,10 @@ def crawl_domain(mainURL,crawled):
         if append_url == mainURL:
             pass
         else:
-            outlinks.append(append_url)  
+            if "javascript:void(0)" == append_url:
+                pass
+            else:
+                outlinks.append(append_url)  
             outlinksCounter += 1
     crawled.append(mainURL)
     print(outlinks)
@@ -128,8 +129,12 @@ def goCrawl(mainURL, url, crawled):
             else:
                 if getDisallowed(mainURL, links) == True:
                     if "https://" in links:
-                        validOutlinks.append(links)
-                    else: pass
+                        if "javascript:void(0)" in links:
+                            pass
+                        else:
+                            validOutlinks.append(links)
+                    else:
+                         pass
                 else:
                     pass
 
@@ -180,13 +185,11 @@ def save_htmls(file_path, file_num, thisSoup):
     for soup in thisSoup:
         filename_outhtml = f"{file_path}/repository/html_output{file_num}({out}).html"
         os.makedirs(os.path.dirname(filename_outhtml), exist_ok=True)
-        with open(filename_outhtml, "w") as file:
+        with open(filename_outhtml, "w", encoding = "utf-8-sig") as file:
             file.write(str(soup))
         out += 1
         #print(soup)
         
-  
-
 # This for loop iterates through all the links in the outlinks list and requests the html, but currently missing a feature to
 # save the visited link's html to a new file, e.g. html_output(2).html for the second visited link, html_outout(3).html for the third link, ...
 
