@@ -1,6 +1,8 @@
 from itertools import count
 import os
 import requests
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry 
 import nltk
 from langdetect import detect
 from bs4 import BeautifulSoup
@@ -13,6 +15,7 @@ from urllib.request import urlopen
 import urllib.robotparser 
 
 def main():
+    #select link
     options = ["https://www.cau.ac.kr","https://www.ipn.mx/","https://www.devry.edu/"]
     print("Which url would you like to crawl")
     count=0
@@ -57,7 +60,14 @@ def main():
 
 def crawl_domain(mainURL,crawled):
     
-    response = requests.get(mainURL, verify = False)
+    #response = requests.get(mainURL, verify = False)
+    session = requests.Session()
+    retry = Retry(connect=3, backoff_factor=0.5)
+    adapter = HTTPAdapter(max_retries=retry)
+    session.mount('http://', adapter)
+    session.mount('https://', adapter)
+    response = session.get(mainURL)
+
     html = response.text
     soup = BeautifulSoup(html, 'lxml')   # Request html from the url and use Beautifulsoup to parse
 
@@ -75,6 +85,7 @@ def crawl_domain(mainURL,crawled):
             outlinks.append(append_url)  
             outlinksCounter += 1
     crawled.append(mainURL)
+    print(outlinks)
 
     return soup, outlinks, crawled
 
@@ -87,7 +98,14 @@ def getDisallowed(mainURL, pageVisting):
     return check 
 
 def goCrawl(mainURL, url, crawled):
-    page = requests.get(url, verify = False)
+    #page = requests.get(url, verify = False)
+    session = requests.Session()
+    retry = Retry(connect=3, backoff_factor=0.5)
+    adapter = HTTPAdapter(max_retries=retry)
+    session.mount('http://', adapter)
+    session.mount('https://', adapter)
+    page = session.get(url)
+
     thisHTML = page.text
     thisSoup = BeautifulSoup(thisHTML,'lxml')
 
@@ -165,7 +183,7 @@ def save_htmls(file_path, file_num, thisSoup):
         with open(filename_outhtml, "w") as file:
             file.write(str(soup))
         out += 1
-        print(soup)
+        #print(soup)
         
   
 
