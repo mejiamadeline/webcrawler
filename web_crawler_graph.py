@@ -11,7 +11,7 @@ from urllib.parse import urljoin
 import urllib.robotparser 
 import string
 import numpy as np
-import matplotlib as plt
+import matplotlib.pyplot as plt
 
 
 def main():
@@ -39,10 +39,8 @@ def main():
     masterSoup = []
     soupString = ''
 
-    
-
     for links in outlinks:
-        if counter > 100:
+        if counter > 5:
             break
         thisCounter, url, thisSoup, validOutlinks, soupText = goCrawl(mainURL, links, crawled)
 
@@ -57,19 +55,11 @@ def main():
     for soup in masterSoup:
         soupString = soupString + soup
     
+    words_in_corpus, unique_words, crawledWords = language_processing(soupString)
     
-    if detect(soupString) != "ko": 
-        soupString = (''.join([x for x in soupString if x in string.ascii_letters + '\'- ']))
-        countTrue = Counter(soupString.lower().split())
-        crawledWords = (countTrue.most_common(100))
-       
-    else:
-        okt = Okt()                             
-        korean_noun = okt.nouns(soupString)    # From the converted string, extract only Korean nouns
-        countTrue = Counter(korean_noun)      
-        crawledWords = countTrue.most_common(100)   # Count the 100 most frequent words
-
-    print("The URL is in the following language: ", detect(soupString)) 
+    print("The URL is in the following language: ", detect(soupString))
+    print("Total words in the collection: ", words_in_corpus)
+    print("Number of unique words in the collection: ", unique_words)
     
     #StArtT
     s = dict(crawledWords)
@@ -88,8 +78,27 @@ def main():
     save_htmls(file_path, file_num, allSoup)
     save_files(file_path,file_num,crawledWords,soup,urlList, outlinkCount)
 
-    
 
+#detects if the html string is in either Korean or Non-Korean language.
+#Counts the 100 most frequent words, total words in the collection, and the number of unique words and returns them.
+def language_processing(soupString):
+
+    if detect(soupString) != "ko": 
+        soupString = (''.join([x for x in soupString if x in string.ascii_letters + '\'- ']))
+        countTrue = Counter(soupString.lower().split())
+        words_in_corpus = len(soupString)       #Total words in the collection
+        unique_words = len(countTrue)           #Vocabulary size (number of unique words)
+        crawledWords = (countTrue.most_common(100))
+       
+    else:
+        okt = Okt()                             
+        korean_words = okt.nouns(soupString)    # From the converted string, extract only Korean nouns
+        countTrue = Counter(korean_words)
+        words_in_corpus = len(korean_words)       #Total words in the collection
+        unique_words = len(countTrue)            #Vocabulary size (number of unique words)   
+        crawledWords = countTrue.most_common(100) 
+
+    return words_in_corpus, unique_words, crawledWords
 
 def crawl_domain(mainURL,crawled):
     
