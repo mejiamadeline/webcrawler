@@ -1,4 +1,3 @@
-
 import os
 import requests
 from requests.adapters import HTTPAdapter
@@ -61,17 +60,6 @@ def main():
     print("Total words in the collection: ", words_in_corpus)
     print("Number of unique words in the collection: ", unique_words)
     
-    #StArtT
-    s = dict(crawledWords)
-    s = list(s.values())
-    s = np.array(s)
-    
-    a, m = 2., 100.
-    count, bins, ignored = plt.hist(s,100,density=False, stacked=True)
-    y = a*m**a/bins**(a+1)
-    plt.plot(bins, max(count)* y/max(y), linewidth=2, color='r')
-    plt.show()
-    #EnnDD
 
     report.append(urlList)
     report.append(outlinkCount)
@@ -89,6 +77,7 @@ def language_processing(soupString):
         words_in_corpus = len(soupString)       #Total words in the collection
         unique_words = len(countTrue)           #Vocabulary size (number of unique words)
         crawledWords = (countTrue.most_common(100))
+        zipfs_law(countTrue)                    #Pass total words to zipf's method
        
     else:
         okt = Okt()                             
@@ -97,9 +86,22 @@ def language_processing(soupString):
         words_in_corpus = len(korean_words)       #Total words in the collection
         unique_words = len(countTrue)            #Vocabulary size (number of unique words)   
         crawledWords = countTrue.most_common(100) 
+        zipfs_law(countTrue)                    #Pass total words to zipf's method
+         
 
     return words_in_corpus, unique_words, crawledWords
 
+def zipfs_law(countTrue):
+    s = dict(countTrue)
+    s = list(s.values())
+    s = np.array(s)
+
+    a, m = 2., 100.
+    count, bins, ignored = plt.hist(s,100,density=False, stacked=True)
+    y = a*m**a/bins**(a+1)
+    plt.plot(bins, max(count)* y/max(y), linewidth=2, color='r')
+    plt.show()
+    
 def crawl_domain(mainURL,crawled):
     
     #response = requests.get(mainURL, verify = False)
