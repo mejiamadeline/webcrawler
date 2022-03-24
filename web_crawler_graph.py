@@ -95,8 +95,6 @@ def language_processing(soupString):
     return words_in_corpus, unique_words, crawledWords
 
 def zipfs_law(zipf):
-    font_path = '/users/jjung/NotoSansKR-Medium.otf'        #Your local file path where the Korean font is located at
-    font_prop = font_manager.FontProperties(fname=font_path)
     print('=' * 60)
     frequency = {}
     
@@ -115,7 +113,7 @@ def zipfs_law(zipf):
     plt.figure(figsize=(20,20))
     plt.ylabel("Frequency")
     plt.xlabel("Words")
-    plt.xticks(rotation = 90, font_properties = font_prop)
+    plt.xticks(rotation = 90)
     
     for word, freq in collection[:30]:
         plt.bar(word,freq)
