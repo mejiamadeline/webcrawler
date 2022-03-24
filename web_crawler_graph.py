@@ -9,8 +9,10 @@ from collections import Counter
 from urllib.parse import urljoin
 import urllib.robotparser 
 import string
-import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
+from operator import itemgetter
+
 
 
 def main():
@@ -73,11 +75,12 @@ def language_processing(soupString):
 
     if detect(soupString) != "ko": 
         soupString = (''.join([x for x in soupString if x in string.ascii_letters + '\'- ']))
+        zipf = soupString.lower().split()
         countTrue = Counter(soupString.lower().split())
         words_in_corpus = len(soupString)       #Total words in the collection
         unique_words = len(countTrue)           #Vocabulary size (number of unique words)
         crawledWords = (countTrue.most_common(100))
-        zipfs_law(countTrue)                    #Pass total words to zipf's method
+        zipfs_law(zipf)                    #Pass total words to zipf's method
        
     else:
         okt = Okt()                             
@@ -86,20 +89,34 @@ def language_processing(soupString):
         words_in_corpus = len(korean_words)       #Total words in the collection
         unique_words = len(countTrue)            #Vocabulary size (number of unique words)   
         crawledWords = countTrue.most_common(100) 
-        zipfs_law(countTrue)                    #Pass total words to zipf's method
+        zipfs_law(korean_words)                    #Pass total words to zipf's method
          
 
     return words_in_corpus, unique_words, crawledWords
 
-def zipfs_law(countTrue):
-    s = dict(countTrue)
-    s = list(s.values())
-    s = np.array(s)
-
-    a, m = 2., 100.
-    count, bins, ignored = plt.hist(s,100,density=False, stacked=True)
-    y = a*m**a/bins**(a+1)
-    plt.plot(bins, max(count)* y/max(y), linewidth=2, color='r')
+def zipfs_law(zipf):
+    print('=' * 60)
+    frequency = {}
+    
+    for word in zipf:
+        count = frequency.get(word,0)
+        frequency[word] = count +1
+        
+    rank = 1
+    rslt = pd.DataFrame(columns=['Rank','Frequency','Frequency*Rank'])
+    collection = sorted(frequency.items(),key=itemgetter(1), reverse=True)
+    for word, freq in collection:
+        rslt.loc[word] = [rank, freq, rank*freq]
+        rank = rank + 1
+    print(rslt)
+    
+    plt.figure(figsize=(20,20))
+    plt.ylabel("Frequency")
+    plt.xlabel("Words")
+    plt.xticks(rotation = 90)
+    
+    for word, freq in collection[:30]:
+        plt.bar(word,freq)
     plt.show()
     
 def crawl_domain(mainURL,crawled):
