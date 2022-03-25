@@ -34,7 +34,7 @@ def main():
     report = []
     wordList = []
     frequencyList = []
-    soup, outlinks, crawledOut  = crawl_domain(mainURL,crawled)
+    soup, outlinks, crawledOut, wordList, frequencyList  = crawl_domain(mainURL,crawled, wordList, frequencyList)
     crawled = crawledOut
 
     counter = 0
@@ -58,7 +58,7 @@ def main():
         outlinkCount.append(thisCounter)
         counter += 1
 
-    for x in range(50):
+    for x in range(len(wordList)):
         print(wordList[x])    
         print(frequencyList[x])
 
@@ -71,7 +71,7 @@ def main():
     print("Total words in the collection: ", words_in_corpus)
     print("Number of unique words in the collection: ", unique_words)
     
-    query = input("\nWhat is your query?\n")
+    query = input("\nPlease enter your query: \n")
     query = query.lower()
     querySet = query.split(" ")
     print(querySet)
@@ -84,9 +84,9 @@ def main():
     print(frequencyListSmall)
     if len(frequencyListSmall) != 0:
         intersect = set(frequencyListSmall[0]).intersection(*frequencyListSmall)
-        print ("intersections: " + str(intersect))
+        print ("Relevent results are: " + str(intersect))
     else: 
-        print("No valid htmls available")
+        print("No relevent documents are available.")
 
 
     report.append(urlList)
@@ -145,7 +145,7 @@ def zipfs_law(zipf):
         plt.bar(word,freq)
     plt.show()
     
-def crawl_domain(mainURL,crawled):
+def crawl_domain(mainURL,crawled, wordList, frequencyList):
     
     #response = requests.get(mainURL, verify = False)
     session = requests.Session()
@@ -160,12 +160,27 @@ def crawl_domain(mainURL,crawled):
     soupMainText = soup.get_text()
 
     currentMainSoup = soupMainText
+    currentMainText = ''
 
     if detect(currentMainSoup) != "ko":
         currentMainSoup = (''.join([x for x in currentMainSoup if x in string.ascii_letters + '\'- ']))
         currentMainText = currentMainSoup.lower().split()
-        uniqueMainText = np.array(currentMainText)
-        #print(np.unique(uniqueMainText))
+    else: 
+        okt1 = Okt()
+        currentMainText = okt1.nouns(currentMainSoup)
+    
+    newMainWordList = wordList 
+    newMainFrequencyList = frequencyList 
+
+    for word in currentMainText:
+        if word not in wordList:
+            newMainWordList.append(word)
+            newMainFrequencyList.append(["doc 1"])
+        if word in wordList:
+            for x in range(len(newMainWordList)):
+                if "doc 1" not in frequencyList[x]:
+                    if word == newMainWordList[x]:
+                        newMainFrequencyList[x].append("doc 1")
 
     for script in soup(["script", "style"]):    # Get rid of javascript and css from the html
         script.decompose()
@@ -188,7 +203,7 @@ def crawl_domain(mainURL,crawled):
     crawled.append(mainURL)
     #print(outlinks)
 
-    return soup, outlinks, crawled
+    return soup, outlinks, crawled, newMainWordList, newMainFrequencyList
 
 def getDisallowed(mainURL, pageVisting):
     robots = urllib.robotparser.RobotFileParser()
@@ -218,8 +233,8 @@ def goCrawl(mainURL, url, crawled, wordList, frequencyList, counter):
         currentSoup = (''.join([x for x in currentSoup if x in string.ascii_letters + '\'- ']))
         currentText = currentSoup.lower().split()
     else:
-        okt = Okt()                             
-        currentText = okt.nouns(currentSoup)
+        okt2 = Okt()                             
+        currentText = okt2.nouns(currentSoup)
 
 
     newWordList = wordList
@@ -228,16 +243,13 @@ def goCrawl(mainURL, url, crawled, wordList, frequencyList, counter):
     for word in currentText:
         if word not in wordList:
             newWordList.append(word)
-            newFrequencyList.append(["html " + str(counter + 2)])
+            newFrequencyList.append(["doc " + str(counter + 2)])
         if word in wordList:
             for x in range(len(newWordList)):
-                if "html " + str(counter + 2) not in frequencyList[x]:
+                if "doc " + str(counter + 2) not in frequencyList[x]:
                     if word == newWordList[x]:
-                        newFrequencyList[x].append("html " + str(counter + 2))
+                        newFrequencyList[x].append("doc " + str(counter + 2))
                
-        #uniqueText = np.array(currentText)
-        #print(type(np.unique(uniqueText)))
-        #print(currentText)
 
     for script in thisSoup(["script", "style"]):
         script.decompose()
@@ -302,9 +314,6 @@ def save_htmls(file_path, file_num, thisSoup):
             file.write(str(soup))
         out += 1
         #print(soup)
-        
-#def createIndex():
-
 
 if __name__ == "__main__":
     main()
