@@ -1,3 +1,5 @@
+from itertools import count
+from operator import index
 import os
 import requests
 from requests.adapters import HTTPAdapter
@@ -30,6 +32,8 @@ def main():
     file_path =input("Please enter the file path that you would like to use: ")
     crawled = []
     report = []
+    wordList = []
+    frequencyList = []
     soup, outlinks, crawledOut  = crawl_domain(mainURL,crawled)
     crawled = crawledOut
 
@@ -39,11 +43,12 @@ def main():
     allSoup = []
     masterSoup = []
     soupString = ''
+    
 
     for links in outlinks:
         if counter > 5:
             break
-        thisCounter, url, thisSoup, validOutlinks, soupText = goCrawl(mainURL, links, crawled)
+        thisCounter, url, thisSoup, validOutlinks, soupText, wordList, frequencyList = goCrawl(mainURL, links, crawled, wordList, frequencyList, counter) 
 
         allSoup.append(thisSoup)
         masterSoup.append(soupText)
@@ -53,15 +58,36 @@ def main():
         outlinkCount.append(thisCounter)
         counter += 1
 
+    for x in range(50):
+        print(wordList[x])    
+        print(frequencyList[x])
+
     for soup in masterSoup:
         soupString = soupString + soup
     
     words_in_corpus, unique_words, crawledWords = language_processing(soupString)
-    
+
     print("The URL is in the following language: ", detect(soupString))
     print("Total words in the collection: ", words_in_corpus)
     print("Number of unique words in the collection: ", unique_words)
     
+    query = input("\nWhat is your query?\n")
+    query = query.lower()
+    querySet = query.split(" ")
+    print(querySet)
+    frequencyListSmall = []
+    for word in querySet:
+        if word in wordList:
+            for x in range(len(wordList)):
+                if wordList[x] == word:
+                    frequencyListSmall.append(frequencyList[x])
+    print(frequencyListSmall)
+    if len(frequencyListSmall) != 0:
+        intersect = set(frequencyListSmall[0]).intersection(*frequencyListSmall)
+        print ("intersections: " + str(intersect))
+    else: 
+        print("No valid htmls available")
+
 
     report.append(urlList)
     report.append(outlinkCount)
@@ -131,6 +157,15 @@ def crawl_domain(mainURL,crawled):
 
     html = response.text
     soup = BeautifulSoup(html, 'lxml')   # Request html from the url and use Beautifulsoup to parse
+    soupMainText = soup.get_text()
+
+    currentMainSoup = soupMainText
+
+    if detect(currentMainSoup) != "ko":
+        currentMainSoup = (''.join([x for x in currentMainSoup if x in string.ascii_letters + '\'- ']))
+        currentMainText = currentMainSoup.lower().split()
+        uniqueMainText = np.array(currentMainText)
+        #print(np.unique(uniqueMainText))
 
     for script in soup(["script", "style"]):    # Get rid of javascript and css from the html
         script.decompose()
@@ -163,7 +198,7 @@ def getDisallowed(mainURL, pageVisting):
     check = robots.can_fetch("*", pageVisting)
     return check 
 
-def goCrawl(mainURL, url, crawled):
+def goCrawl(mainURL, url, crawled, wordList, frequencyList, counter):
     #page = requests.get(url, verify = False)
     session = requests.Session()
     retry = Retry(connect=3, backoff_factor=0.1)
@@ -175,6 +210,34 @@ def goCrawl(mainURL, url, crawled):
     thisHTML = page.text
     thisSoup = BeautifulSoup(thisHTML,'lxml')
     soupText = thisSoup.get_text()
+    
+    currentSoup = soupText
+    currentText = ''
+
+    if detect(currentSoup) != "ko":
+        currentSoup = (''.join([x for x in currentSoup if x in string.ascii_letters + '\'- ']))
+        currentText = currentSoup.lower().split()
+    else:
+        okt = Okt()                             
+        currentText = okt.nouns(currentSoup)
+
+
+    newWordList = wordList
+    newFrequencyList = frequencyList
+
+    for word in currentText:
+        if word not in wordList:
+            newWordList.append(word)
+            newFrequencyList.append(["html " + str(counter + 2)])
+        if word in wordList:
+            for x in range(len(newWordList)):
+                if "html " + str(counter + 2) not in frequencyList[x]:
+                    if word == newWordList[x]:
+                        newFrequencyList[x].append("html " + str(counter + 2))
+               
+        #uniqueText = np.array(currentText)
+        #print(type(np.unique(uniqueText)))
+        #print(currentText)
 
     for script in thisSoup(["script", "style"]):
         script.decompose()
@@ -204,7 +267,8 @@ def goCrawl(mainURL, url, crawled):
                 else:
                     pass
 
-    return thisCounter, url, thisSoup, validOutlinks, soupText
+    return thisCounter, url, thisSoup, validOutlinks, soupText, newWordList, newFrequencyList 
+
 
 # I made an if else statement that checks the language of the html.
 # If it is not Korean, then count top 100 most frequent words without using the konply library
@@ -239,5 +303,8 @@ def save_htmls(file_path, file_num, thisSoup):
         out += 1
         #print(soup)
         
+#def createIndex():
+
+
 if __name__ == "__main__":
     main()
