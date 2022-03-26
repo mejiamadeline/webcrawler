@@ -18,11 +18,11 @@ from matplotlib import font_manager
 
 
 def main():
-    #select link
+    #select link 
     options = ["https://www.cau.ac.kr","https://es.wikipedia.org/","https://www.devry.edu/"]
     print("Which url would you like to crawl")
     count=0
-
+    
     for each in options: 
         print(count, " ",each)
         count = count+1
@@ -105,16 +105,19 @@ def main():
 #detects if the html string is in either Korean or Non-Korean language.
 #Counts the 100 most frequent words, total words in the collection, and the number of unique words and returns them.
 def language_processing(soupString):
-
+    #print(soupString)
+    #@TODO: I feel like this is repeated somewhere 
     if detect(soupString) != "ko": 
-        soupString = (''.join([x for x in soupString if x in string.ascii_letters + '\'- ']))
-        zipf = soupString.lower().split()
+        #@AttemptHere~~
+        #soupString = (''.join([x for x in soupString if x in string.ascii_letters + '\'- ']))
+        #zipf = soupString.lower().split()
+        zipf=collect_words(soupString)
         countTrue = Counter(soupString.lower().split())
         words_in_corpus = len(soupString)       #Total words in the collection
         unique_words = len(countTrue)           #Vocabulary size (number of unique words)
         crawledWords = (countTrue.most_common(100))
         zipfs_law(zipf)                    #Pass total words to zipf's method
-       
+    #process korean words    
     else:
         okt = Okt()                             
         korean_words = okt.nouns(soupString)    # From the converted string, extract only Korean nouns
@@ -155,6 +158,7 @@ def zipfs_law(zipf):
 def crawl_domain(mainURL,crawled, wordList, frequencyList):
     
     #response = requests.get(mainURL, verify = False)
+    #creates session for requests so parameters persist 
     session = requests.Session()
     retry = Retry(connect=3, backoff_factor=0.1)
     adapter = HTTPAdapter(max_retries=retry)
@@ -162,16 +166,19 @@ def crawl_domain(mainURL,crawled, wordList, frequencyList):
     session.mount('https://', adapter)
     response = session.get(mainURL)
 
+    #take text of response and parse it 
     html = response.text
     soup = BeautifulSoup(html, 'lxml')   # Request html from the url and use Beautifulsoup to parse
     soupMainText = soup.get_text()
 
     currentMainSoup = soupMainText
     currentMainText = ''
-
+    #@TODO: this is repeated for english processing of soup 
     if detect(currentMainSoup) != "ko":
-        currentMainSoup = (''.join([x for x in currentMainSoup if x in string.ascii_letters + '\'- ']))
-        currentMainText = currentMainSoup.lower().split()
+        #@AttemptHere~~~~
+        #currentMainSoup = (''.join([x for x in currentMainSoup if x in string.ascii_letters + '\'- ']))
+        #currentMainText = currentMainSoup.lower().split()
+        currentMainText=collect_words(currentMainSoup)
     else: 
         okt1 = Okt()
         currentMainText = okt1.nouns(currentMainSoup)
@@ -191,7 +198,7 @@ def crawl_domain(mainURL,crawled, wordList, frequencyList):
 
     for script in soup(["script", "style"]):    # Get rid of javascript and css from the html
         script.decompose()
-
+    #go through html and pull out outlinks
     outlinks = []           
     outlinksCounter = 0               
     for append_url in soup.find_all('a', href= True):
@@ -199,6 +206,12 @@ def crawl_domain(mainURL,crawled, wordList, frequencyList):
         append_url = urljoin(mainURL, append_url)
         if append_url == mainURL:
             pass
+        elif 'javascript:void' in append_url:
+            pass
+        else:
+            outlinks.append(append_url)  
+            outlinksCounter += 1
+        """
         else:
             if "javascript:void(0)" == append_url:
                 pass
@@ -206,7 +219,16 @@ def crawl_domain(mainURL,crawled, wordList, frequencyList):
                 pass
             else:
                 outlinks.append(append_url)  
-            outlinksCounter += 1
+                outlinksCounter += 1
+        """
+
+        """
+        
+        """
+        #@TODO: can these be condensed into a contains? 
+        """
+        
+        """
     crawled.append(mainURL)
     #print(outlinks)
 
@@ -235,10 +257,12 @@ def goCrawl(mainURL, url, crawled, wordList, frequencyList, counter):
     
     currentSoup = soupText
     currentText = ''
-
+    #@TODO: this is the third reptition of this block
     if detect(currentSoup) != "ko":
-        currentSoup = (''.join([x for x in currentSoup if x in string.ascii_letters + '\'- ']))
-        currentText = currentSoup.lower().split()
+        #@AttemptHere~~~~
+        #currentSoup = (''.join([x for x in currentSoup if x in string.ascii_letters + '\'- ']))
+        #currentText = currentSoup.lower().split()
+        currentText =collect_words(currentSoup)
     else:
         okt2 = Okt()                             
         currentText = okt2.nouns(currentSoup)
@@ -260,7 +284,7 @@ def goCrawl(mainURL, url, crawled, wordList, frequencyList, counter):
 
     for script in thisSoup(["script", "style"]):
         script.decompose()
-
+    #@TODO: this is also outlinks-- rep 1 
     thisOutlinks = []
     thisCounter = 0
     for append_url in thisSoup.find_all('a', href= True):
@@ -321,6 +345,11 @@ def save_htmls(file_path, file_num, thisSoup):
             file.write(str(soup))
         out += 1
         #print(soup)
+def collect_words(soup):
+    #function collects all of the words in soup and returns a string of only them and a few accepted characters
+    soupString = (''.join([x for x in soup if x in string.ascii_letters + '\'- ']))
+    revised_soup_string = soupString.lower().split()
+    return revised_soup_string
 
 if __name__ == "__main__":
     main()
