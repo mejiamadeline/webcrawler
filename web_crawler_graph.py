@@ -98,11 +98,13 @@ def main():
 #detects if the html string is in either Korean or Non-Korean language.
 #Counts the 100 most frequent words, total words in the collection, and the number of unique words and returns them.
 def language_processing(soupString):
-
+    #print(soupString)
     #@TODO: I feel like this is repeated somewhere 
     if detect(soupString) != "ko": 
-        soupString = (''.join([x for x in soupString if x in string.ascii_letters + '\'- ']))
-        zipf = soupString.lower().split()
+        #@AttemptHere~~
+        #soupString = (''.join([x for x in soupString if x in string.ascii_letters + '\'- ']))
+        #zipf = soupString.lower().split()
+        zipf=collect_words(soupString)
         countTrue = Counter(soupString.lower().split())
         words_in_corpus = len(soupString)       #Total words in the collection
         unique_words = len(countTrue)           #Vocabulary size (number of unique words)
@@ -166,8 +168,10 @@ def crawl_domain(mainURL,crawled, wordList, frequencyList):
     currentMainText = ''
     #@TODO: this is repeated for english processing of soup 
     if detect(currentMainSoup) != "ko":
-        currentMainSoup = (''.join([x for x in currentMainSoup if x in string.ascii_letters + '\'- ']))
-        currentMainText = currentMainSoup.lower().split()
+        #@AttemptHere~~~~
+        #currentMainSoup = (''.join([x for x in currentMainSoup if x in string.ascii_letters + '\'- ']))
+        #currentMainText = currentMainSoup.lower().split()
+        currentMainText=collect_words(currentMainSoup)
     else: 
         okt1 = Okt()
         currentMainText = okt1.nouns(currentMainSoup)
@@ -248,8 +252,10 @@ def goCrawl(mainURL, url, crawled, wordList, frequencyList, counter):
     currentText = ''
     #@TODO: this is the third reptition of this block
     if detect(currentSoup) != "ko":
-        currentSoup = (''.join([x for x in currentSoup if x in string.ascii_letters + '\'- ']))
-        currentText = currentSoup.lower().split()
+        #@AttemptHere~~~~
+        #currentSoup = (''.join([x for x in currentSoup if x in string.ascii_letters + '\'- ']))
+        #currentText = currentSoup.lower().split()
+        currentText =collect_words(currentSoup)
     else:
         okt2 = Okt()                             
         currentText = okt2.nouns(currentSoup)
@@ -332,6 +338,11 @@ def save_htmls(file_path, file_num, thisSoup):
             file.write(str(soup))
         out += 1
         #print(soup)
+def collect_words(soup):
+    #function collects all of the words in soup and returns a string of only them and a few accepted characters
+    soupString = (''.join([x for x in soup if x in string.ascii_letters + '\'- ']))
+    revised_soup_string = soupString.lower().split()
+    return revised_soup_string
 
 if __name__ == "__main__":
     main()
