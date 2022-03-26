@@ -46,7 +46,7 @@ def main():
     
 
     for links in outlinks:
-        if counter > 5:
+        if counter > 100:
             break
         thisCounter, url, thisSoup, validOutlinks, soupText, wordList, frequencyList = goCrawl(mainURL, links, crawled, wordList, frequencyList, counter) 
 
@@ -59,7 +59,7 @@ def main():
         counter += 1
 
     for x in range(len(wordList)):
-        print(wordList[x])    
+        print(wordList[x])      #check the words and which html/doc it appears in
         print(frequencyList[x])
 
     for soup in masterSoup:
@@ -74,17 +74,24 @@ def main():
     query = input("\nPlease enter your query: \n")
     query = query.lower()
     querySet = query.split(" ")
-    print(querySet)
+    result = ' '
+    #print(querySet)
     frequencyListSmall = []
     for word in querySet:
         if word in wordList:
             for x in range(len(wordList)):
                 if wordList[x] == word:
                     frequencyListSmall.append(frequencyList[x])
-    print(frequencyListSmall)
+    #print(frequencyListSmall)
     if len(frequencyListSmall) != 0:
         intersect = set(frequencyListSmall[0]).intersection(*frequencyListSmall)
-        print ("Relevent results are: " + str(intersect))
+        relevent = list(intersect)
+        for x in range(len(relevent)):
+            if x == len(relevent)-1:
+                result += relevent[x]
+            else:
+                result += relevent[x] +', '
+        print ("Relevent results are: " + result)
     else: 
         print("No relevent documents are available.")
 
