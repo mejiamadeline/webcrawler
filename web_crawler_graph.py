@@ -195,6 +195,12 @@ def crawl_domain(mainURL,crawled, wordList, frequencyList):
         append_url = urljoin(mainURL, append_url)
         if append_url == mainURL:
             pass
+        elif 'javascript:void' in append_url:
+            pass
+        else:
+            outlinks.append(append_url)  
+            outlinksCounter += 1
+        """
         else:
             if "javascript:void(0)" == append_url:
                 pass
@@ -203,13 +209,10 @@ def crawl_domain(mainURL,crawled, wordList, frequencyList):
             else:
                 outlinks.append(append_url)  
                 outlinksCounter += 1
+        """
 
         """
-        elif 'javascript:void' in append_url:
-            pass
-        else:
-            outlinks.append(append_url)  
-            outlinksCounter += 1
+        
         """
         #@TODO: can these be condensed into a contains? 
         """
