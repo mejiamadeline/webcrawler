@@ -99,6 +99,7 @@ def main():
     report.append(outlinkCount)
 
     #Implementing page rank, this sorts out the page rank score
+    print(G.edges)
     pr = nx.pagerank(G)
     pr = sorted(pr.items(),key=lambda v:(v[1],v[0]),reverse=True)
 
