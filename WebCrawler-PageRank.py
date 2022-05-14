@@ -99,10 +99,12 @@ def main():
     report.append(outlinkCount)
 
     #Implementing page rank, this sorts out the page rank score
-    print(G.edges)
+    #@TODO do edge thingy here 
     pr = nx.pagerank(G)
     pr = sorted(pr.items(),key=lambda v:(v[1],v[0]),reverse=True)
-
+    ourpr1,ourpr2 = our_pr(G)
+    for i in range(len(ourpr1)):
+        print(ourpr1[i]," ",ourpr2[i])
     print("Page rank: " + str(pr))
 
     save_htmls(file_path, file_num, allSoup)
@@ -116,6 +118,42 @@ def main():
     show_sub_graph(G, pr, float(0.0050))
 
 #Takes our graphs and returns a subgraph with less nodes
+def our_pr(G):
+    nodes = list(G.nodes)
+    out_edge = []
+    for each in nodes:
+        out_edge.append(len(G.out_edges(each)))
+    print(nodes)
+    print(out_edge)
+    #first pr 
+    prs = []
+    count = 0
+    for each in nodes: 
+        if(out_edge[count]!= 0):
+            prs.append(((1/len(nodes))/out_edge[count]))
+        else:
+            prs.append(0)
+        count = count + 1
+    prev_pr = []
+    while (prev_pr != prs):
+        c = 0
+        prev_pr = prs
+        for each in prs:
+            prs[c] = calc(nodes[c],nodes,prs,out_edge)
+    return nodes,prs
+
+
+def calc(calc_node,nodes,prs,outlinks):
+    calc = 0
+    count = 0
+    for each in nodes: 
+        if(nodes != calc_node):
+            if(outlinks[count]!= 0):
+                calc = calc + (prs[count]/outlinks[count])
+        count = count+1
+    return calc
+
+
 def show_sub_graph(G, pr, weight = 0.0):
     temp = G.copy(as_view = False)
     for index, tuple in enumerate(pr):
