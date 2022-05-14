@@ -1,5 +1,6 @@
 from cmath import log
 import os
+from numpy import append
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry 
@@ -35,12 +36,13 @@ def main():
     crawled = []
     report = []
     wordList = []
-    frequencyList = []
+    frequencyList = []  
     dl_List = []
     wordFrequencyList = []
     soup, outlinks, crawledOut, wordList, frequencyList, dl_List, wordFrequencyList = crawl_domain(mainURL,crawled, wordList, frequencyList, dl_List, wordFrequencyList)
     crawled = crawledOut
     print(dl_List)
+ 
 
     counter = 0
     urlList = []
@@ -50,7 +52,7 @@ def main():
     soupString = ''
     
     for links in outlinks:
-        if counter > 10:
+        if counter > 3:
             break
         thisCounter, url, thisSoup, validOutlinks, soupText, wordList, frequencyList, dl_List, wordFrequencyList = goCrawl(mainURL, links, crawled, wordList, frequencyList, counter, dl_List, wordFrequencyList) 
 
@@ -69,7 +71,7 @@ def main():
 
     '''for x in range(len(wordList)):
         print(wordList[x])      #check the words and which html/doc it appears in
-        print(frequencyList[x])'''
+        print(len(frequencyList[x]))'''
 
     for soup in masterSoup:
         soupString = soupString + soup
@@ -79,7 +81,7 @@ def main():
     print("The URL is in the following language: ", detect(soupString))
     print("Total words in the collection: ", words_in_corpus)
     print("Number of unique words in the collection: ", unique_words)
-    
+
     query = input("\nPlease enter your query: \n")
     query = query.lower()
     querySet = query.split(" ")
@@ -95,6 +97,7 @@ def main():
             usedParts.append(parts)
     '''print(qf)
     print(usedParts)'''
+
 
     result = ' '
     N = len(crawled)
@@ -127,7 +130,7 @@ def main():
             totalScore += BM25_formula(qf[section],N,n[section],doc[querySet[section]],dl_List[section],avdl)
         BM25_scores.append(totalScore)    
     print(BM25_scores)
-
+        
     report.append(urlList)
     report.append(outlinkCount)
 
@@ -198,7 +201,6 @@ def language_processing(soupString):
         words_in_corpus = len(soupString)       #Total words in the collection
         unique_words = len(countTrue)           #Vocabulary size (number of unique words)
         crawledWords = (countTrue.most_common(100))
-        zipfs_law(zipf)                    #Pass total words to zipf's method
     #process korean words    
     else:
         okt = Okt()                             
@@ -207,35 +209,10 @@ def language_processing(soupString):
         words_in_corpus = len(korean_words)       #Total words in the collection
         unique_words = len(countTrue)            #Vocabulary size (number of unique words)   
         crawledWords = countTrue.most_common(100) 
-        zipfs_law(korean_words)                    #Pass total words to zipf's method
          
 
     return words_in_corpus, unique_words, crawledWords
 
-def zipfs_law(zipf):
-    print('=' * 60)
-    frequency = {}
-    
-    for word in zipf:
-        count = frequency.get(word,0)
-        frequency[word] = count +1
-        
-    rank = 1
-    rslt = pd.DataFrame(columns=['Rank','Frequency','Frequency*Rank'])
-    collection = sorted(frequency.items(),key=itemgetter(1), reverse=True)
-    for word, freq in collection:
-        rslt.loc[word] = [rank, freq, rank*freq]
-        rank = rank + 1
-    print(rslt)
-    
-    plt.figure(figsize=(20,20))
-    plt.ylabel("Frequency")
-    plt.xlabel("Words")
-    plt.xticks(rotation = 90)
-    
-    for word, freq in collection[:30]:
-        plt.bar(word,freq)
-    plt.show()
     
 def crawl_domain(mainURL,crawled, wordList, frequencyList, dl_List, wordFrequencyList):
     
@@ -437,11 +414,6 @@ def save_files(file_path, file_num, words_list, soup, urlList, outlinkCount,pr):
         for i in range(len(urlList)):
             file.write("{}, {}\n".format(urlList[i], outlinkCount[i]))
     
-    #Saved links with their page rank score
-    os.makedirs(os.path.dirname(filename_pagerank),exist_ok=True)
-    with open(filename_pagerank, "w", encoding = "utf-8") as file:
-        for index, tuple in enumerate(pr):
-            file.write("{}, {}\n".format(tuple[0], tuple[1]))
 
 def save_htmls(file_path, file_num, thisSoup):
     out =1 

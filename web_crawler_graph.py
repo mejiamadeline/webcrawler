@@ -46,7 +46,7 @@ def main():
     
 
     for links in outlinks:
-        if counter > 100:
+        if counter > 10:
             break
         thisCounter, url, thisSoup, validOutlinks, soupText, wordList, frequencyList = goCrawl(mainURL, links, crawled, wordList, frequencyList, counter) 
 
